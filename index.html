@@ -33,6 +33,7 @@
   .tab { flex: 1; padding: 11px 0; border: none; background: transparent; border-radius: 10px; font-family: var(--sans); font-size: 15px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.18s; min-height: var(--tap); }
   .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .tab.active.wheat-tab { color: var(--wheat); }
+  .tab.active.sweet-tab { color: #D4506A; }
 
   /* Card */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
@@ -98,6 +99,7 @@
   /* Result */
   .result { background: var(--accent); border-radius: 14px; padding: 1.1rem 1.25rem; margin-top: 6px; margin-bottom: 10px; }
   .result.wheat-result { background: var(--wheat); }
+  .result.sweet-result { background: var(--sweet); }
   .result-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
   .result-label { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; margin-bottom: 4px; }
   .result-hint { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.55); }
@@ -162,13 +164,14 @@
   <div class="header">
     <div class="header-left">
       <div class="header-title">麵糰<span>重量</span>計算</div>
-      <div class="header-ver">v2.2 · 預設值可編輯・自訂品項</div>
+      <div class="header-ver">v2.3 · 預設值可編輯・自訂品項</div>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab active" onclick="switchTab('white')">白吐司</button>
     <button class="tab wheat-tab" onclick="switchTab('wheat')">全麥吐司</button>
+    <button class="tab sweet-tab" onclick="switchTab('sweet')">甜麵包</button>
   </div>
 
   <!-- WHITE PANEL -->
@@ -437,7 +440,7 @@
 </div>
 
 <script>
-const VERSION = 'v2.2';
+const VERSION = 'v2.3';
 
 // ── 原始預設值（恢復預設用）──
 const FACTORY = {
@@ -666,10 +669,15 @@ function copyMultiplierWheat() { doCopy('wh-copy-btn', document.getElementById('
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0 && tab === 'white') || (i === 1 && tab === 'wheat'));
+    t.classList.toggle('active',
+      (i === 0 && tab === 'white') ||
+      (i === 1 && tab === 'wheat') ||
+      (i === 2 && tab === 'sweet')
+    );
   });
   document.getElementById('panel-white').classList.toggle('active', tab === 'white');
   document.getElementById('panel-wheat').classList.toggle('active', tab === 'wheat');
+  document.getElementById('panel-sweet').classList.toggle('active', tab === 'sweet');
 }
 
 
@@ -811,6 +819,70 @@ renderCustomRows('w');
 renderCustomRows('wh');
 calc();
 calcWheat();
+
+function calcSweet() {
+  const BATCH = 7287;
+  const BURGER_DOUGH = 2000;
+  const BURGER_PER_BALL = 36;
+
+  const toastCnt = parseFloat(document.getElementById('sw-toast').value) || 0;
+  const burgerCnt = parseFloat(document.getElementById('sw-burger').value) || 0;
+
+  // Toast multiplier
+  let toastMultiplier = 0;
+  let toastLabel = '';
+  if (toastCnt > 0) {
+    if (toastCnt <= 12) {
+      toastMultiplier = 2.4;
+      toastLabel = `${toastCnt}條 → 2.40倍`;
+    } else {
+      toastMultiplier = 2.55;
+      toastLabel = `${toastCnt}條 → 2.55倍`;
+    }
+  }
+  document.getElementById('sw-toast-ratio').textContent = toastCnt > 0 ? (toastCnt <= 12 ? '2.40 倍' : '2.55 倍') : '';
+
+  // Burger balls (ceiling)
+  const burgerBalls = burgerCnt > 0 ? Math.ceil(burgerCnt / BURGER_PER_BALL) : 0;
+  const burgerG = burgerBalls * BURGER_DOUGH;
+  const burgerEl = document.getElementById('sw-burger-balls');
+  burgerEl.textContent = burgerCnt > 0 ? `${burgerBalls} 顆大麵糰` : '';
+
+  // Total weight = toast portion + burger portion
+  const toastG = toastMultiplier * BATCH;
+  const totalG = toastG + burgerG;
+
+  // Final multiplier = ceil to 2dp
+  const rawMultiplier = totalG / BATCH;
+  const multiplier = totalG > 0 ? Math.ceil(rawMultiplier * 100) / 100 : 0;
+  const mText = multiplier > 0 ? multiplier.toFixed(2) : '—';
+
+  document.getElementById('sw-final').textContent = totalG > 0 ? Math.round(totalG).toLocaleString('zh-TW') : '—';
+  document.getElementById('sw-multiplier').textContent = mText;
+
+  const btn = document.getElementById('sw-copy-btn');
+  btn.disabled = multiplier <= 0;
+  btn.setAttribute('data-val', mText);
+
+  // Breakdown
+  const items = [];
+  if (toastCnt > 0) items.push({ label: `小吐司 ${toastCnt}條（${toastCnt <= 12 ? '≤12條' : '≥13條'} × ${toastMultiplier}倍 × 7,287g）`, val: Math.round(toastG).toLocaleString('zh-TW') + ' g', cls: '' });
+  if (burgerCnt > 0) {
+    items.push({ label: `漢堡 ${burgerCnt}顆 ÷ 36 = ${burgerBalls}顆大麵糰`, val: '', cls: '' });
+    items.push({ label: `漢堡麵糰 ${burgerBalls}顆 × 2,000g`, val: Math.round(burgerG).toLocaleString('zh-TW') + ' g', cls: '' });
+  }
+  if (totalG > 0) items.push({ label: '需求總重量', val: Math.round(totalG).toLocaleString('zh-TW') + ' g', cls: 'total' });
+  if (multiplier > 0) items.push({ label: `總倍數（÷ 7,287g，無條件進位至小數第2位）`, val: mText + ' 倍', cls: 'total' });
+
+  document.getElementById('sw-breakdown').innerHTML = items.map(i =>
+    `<div class="breakdown-item ${i.cls}"><span class="breakdown-item-label">${i.label}</span><span class="breakdown-item-val">${i.val}</span></div>`
+  ).join('');
+}
+
+function copyMultiplierSweet() {
+  doCopy('sw-copy-btn', document.getElementById('sw-copy-btn').getAttribute('data-val'));
+}
+
 </script>
 </body>
 </html>
