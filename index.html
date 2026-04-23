@@ -15,6 +15,7 @@
     --border: #DDD9CF; --border-strong: #C4BFB2;
     --text: #1C1A16; --text-muted: #7A7568; --text-dim: #A8A39A;
     --accent: #C85A2A; --accent-light: #F7EDE6; --wheat: #D4A843;
+    --sweet: #8B1A2A;
     --mono: 'DM Mono', monospace; --sans: 'Noto Sans TC', sans-serif; --tap: 48px;
   }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -33,7 +34,7 @@
   .tab { flex: 1; padding: 11px 0; border: none; background: transparent; border-radius: 10px; font-family: var(--sans); font-size: 15px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.18s; min-height: var(--tap); }
   .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .tab.active.wheat-tab { color: var(--wheat); }
-  .tab.active.sweet-tab { color: #D4506A; }
+  .tab.active.sweet-tab { color: #8B1A2A; }
 
   /* Card */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
@@ -435,7 +436,126 @@
     </div>
 
     <div class="breakdown"><div class="breakdown-title">計算明細</div><div class="breakdown-items" id="wh-breakdown"></div></div>
-  </div>
+  </div><!-- /panel-wheat -->
+
+  <!-- SWEET PANEL -->
+  <div class="panel" id="panel-sweet">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--sweet)">吐</div>
+        <div class="card-title">小吐司</div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="row-label">
+            條數
+            <div class="row-hint">≤12條 → 2.40倍　≥13條 → 2.55倍</div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="sw-toast" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
+            <span class="unit">條</span>
+          </div>
+          <div class="row-calc" id="sw-toast-ratio" style="font-size:13px;color:var(--sweet);font-weight:500;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--sweet)">堡</div>
+        <div class="card-title">漢堡</div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="row-label">
+            漢堡數量
+            <div class="row-hint">每36顆 = 1大顆麵糰（2,000g）・無條件進位</div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="sw-burger" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
+            <span class="unit">顆</span>
+          </div>
+          <div class="row-calc" id="sw-burger-balls"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--sweet)">糰</div>
+        <div class="card-title">麵糰重量</div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="row-label">3600g</div>
+          <div class="input-wrap">
+            <input type="number" id="sw-d3600" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
+            <span class="unit">顆</span>
+          </div>
+          <div class="row-calc" id="sw-d3600-g"></div>
+        </div>
+        <div class="row">
+          <div class="row-label">2500g</div>
+          <div class="input-wrap">
+            <input type="number" id="sw-d2500" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
+            <span class="unit">顆</span>
+          </div>
+          <div class="row-calc" id="sw-d2500-g"></div>
+        </div>
+        <div class="row">
+          <div class="row-label">1400g</div>
+          <div class="input-wrap">
+            <input type="number" id="sw-d1400" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
+            <span class="unit">顆</span>
+          </div>
+          <div class="row-calc" id="sw-d1400-g"></div>
+        </div>
+        <div class="row">
+          <div class="row-label">
+            自訂
+            <div class="row-hint">輸入單顆重量</div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="sw-dcustom-w" min="1" placeholder="g" step="1" inputmode="numeric" oninput="calcSweet()" style="width:72px">
+            <span class="unit">g ×</span>
+            <input type="number" id="sw-dcustom-n" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()" style="width:60px">
+            <span class="unit">顆</span>
+          </div>
+          <div class="row-calc" id="sw-dcustom-g"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result sweet-result">
+      <div class="result-top">
+        <div>
+          <div class="result-label">隔天需攪拌重量</div>
+          <div class="result-hint">1倍 = 7,287g</div>
+        </div>
+        <div class="result-weight">
+          <span class="result-value" id="sw-final">—</span>
+          <span class="result-unit-lg"> g</span>
+        </div>
+      </div>
+      <div class="result-bottom">
+        <div>
+          <div class="multiplier-label">攪拌倍數</div>
+          <div><span class="multiplier-val" id="sw-multiplier">—</span> <span class="multiplier-unit">倍</span></div>
+        </div>
+        <button class="copy-btn" id="sw-copy-btn" data-val="—" onclick="copyMultiplierSweet()" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          複製倍數
+        </button>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-title">計算明細</div>
+      <div class="breakdown-items" id="sw-breakdown"></div>
+    </div>
+
+  </div><!-- /panel-sweet -->
 
 </div>
 
@@ -824,59 +944,131 @@ function calcSweet() {
   const BATCH = 7287;
   const BURGER_DOUGH = 2000;
   const BURGER_PER_BALL = 36;
+  const TRAY_SIZE = 15;
+  const MAX_BACKUP = 10;
 
   const toastCnt = parseFloat(document.getElementById('sw-toast').value) || 0;
   const burgerCnt = parseFloat(document.getElementById('sw-burger').value) || 0;
 
-  // Toast multiplier
+  // ── Toast multiplier ──
   let toastMultiplier = 0;
-  let toastLabel = '';
-  if (toastCnt > 0) {
-    if (toastCnt <= 12) {
-      toastMultiplier = 2.4;
-      toastLabel = `${toastCnt}條 → 2.40倍`;
-    } else {
-      toastMultiplier = 2.55;
-      toastLabel = `${toastCnt}條 → 2.55倍`;
-    }
-  }
+  if (toastCnt > 0) toastMultiplier = toastCnt <= 12 ? 2.4 : 2.55;
   document.getElementById('sw-toast-ratio').textContent = toastCnt > 0 ? (toastCnt <= 12 ? '2.40 倍' : '2.55 倍') : '';
 
-  // Burger balls (ceiling)
-  const burgerBalls = burgerCnt > 0 ? Math.ceil(burgerCnt / BURGER_PER_BALL) : 0;
+  // ── Burger logic ──
+  let burgerBalls = 0, actualBurgers = 0, trayBurgers = 0, totalTrays = 0, backupBurgers = 0, recycleBurgers = 0;
+  if (burgerCnt > 0) {
+    burgerBalls = Math.ceil(burgerCnt / BURGER_PER_BALL);
+    actualBurgers = burgerBalls * BURGER_PER_BALL;
+
+    // Find smallest multiple of TRAY_SIZE >= burgerCnt with backup <= MAX_BACKUP and <= actualBurgers
+    let candidate = Math.ceil(burgerCnt / TRAY_SIZE) * TRAY_SIZE;
+    trayBurgers = actualBurgers; // fallback: use full dough capacity
+    while (candidate <= actualBurgers) {
+      if ((candidate - burgerCnt) <= MAX_BACKUP) {
+        trayBurgers = candidate;
+        break;
+      }
+      candidate += TRAY_SIZE;
+    }
+
+    backupBurgers = trayBurgers - burgerCnt;
+    recycleBurgers = actualBurgers - trayBurgers;
+    totalTrays = Math.ceil(trayBurgers / TRAY_SIZE);
+  }
   const burgerG = burgerBalls * BURGER_DOUGH;
-  const burgerEl = document.getElementById('sw-burger-balls');
-  burgerEl.textContent = burgerCnt > 0 ? `${burgerBalls} 顆大麵糰` : '';
+  document.getElementById('sw-burger-balls').textContent = burgerCnt > 0 ? burgerBalls + ' 顆大麵糰' : '';
 
-  // Total weight = toast portion + burger portion
+  // ── Fixed dough weights ──
+  const doughItems = [
+    { id: 'sw-d3600', w: 3600 },
+    { id: 'sw-d2500', w: 2500 },
+    { id: 'sw-d1400', w: 1400 },
+  ];
+  let doughTotal = 0;
+  doughItems.forEach(function(d) {
+    const n = parseFloat(document.getElementById(d.id).value) || 0;
+    const g = n * d.w;
+    document.getElementById(d.id + '-g').textContent = g > 0 ? Math.round(g).toLocaleString('zh-TW') + ' g' : '';
+    doughTotal += g;
+  });
+  const customW = parseFloat(document.getElementById('sw-dcustom-w').value) || 0;
+  const customN = parseFloat(document.getElementById('sw-dcustom-n').value) || 0;
+  const customG = customW * customN;
+  document.getElementById('sw-dcustom-g').textContent = customG > 0 ? Math.round(customG).toLocaleString('zh-TW') + ' g' : '';
+  doughTotal += customG;
+
+  // ── Weights & multiplier ──
   const toastG = toastMultiplier * BATCH;
-  const totalG = toastG + burgerG;
-
-  // Final multiplier = ceil to 2dp
-  const rawMultiplier = totalG / BATCH;
-  const multiplier = totalG > 0 ? Math.ceil(rawMultiplier * 100) / 100 : 0;
+  const totalG = toastG + burgerG + doughTotal;
+  const multiplier = totalG > 0 ? Math.ceil(totalG / BATCH * 100) / 100 : 0;
   const mText = multiplier > 0 ? multiplier.toFixed(2) : '—';
 
   document.getElementById('sw-final').textContent = totalG > 0 ? Math.round(totalG).toLocaleString('zh-TW') : '—';
   document.getElementById('sw-multiplier').textContent = mText;
-
   const btn = document.getElementById('sw-copy-btn');
   btn.disabled = multiplier <= 0;
   btn.setAttribute('data-val', mText);
 
-  // Breakdown
+  // ── Breakdown ──
   const items = [];
-  if (toastCnt > 0) items.push({ label: `小吐司 ${toastCnt}條（${toastCnt <= 12 ? '≤12條' : '≥13條'} × ${toastMultiplier}倍 × 7,287g）`, val: Math.round(toastG).toLocaleString('zh-TW') + ' g', cls: '' });
-  if (burgerCnt > 0) {
-    items.push({ label: `漢堡 ${burgerCnt}顆 ÷ 36 = ${burgerBalls}顆大麵糰`, val: '', cls: '' });
-    items.push({ label: `漢堡麵糰 ${burgerBalls}顆 × 2,000g`, val: Math.round(burgerG).toLocaleString('zh-TW') + ' g', cls: '' });
-  }
-  if (totalG > 0) items.push({ label: '需求總重量', val: Math.round(totalG).toLocaleString('zh-TW') + ' g', cls: 'total' });
-  if (multiplier > 0) items.push({ label: `總倍數（÷ 7,287g，無條件進位至小數第2位）`, val: mText + ' 倍', cls: 'total' });
 
-  document.getElementById('sw-breakdown').innerHTML = items.map(i =>
-    `<div class="breakdown-item ${i.cls}"><span class="breakdown-item-label">${i.label}</span><span class="breakdown-item-val">${i.val}</span></div>`
-  ).join('');
+  if (toastCnt > 0) {
+    items.push({ label: '小吐司 ' + toastCnt + ' 條（' + (toastCnt <= 12 ? '≤12條' : '≥13條') + ' → ' + toastMultiplier + ' 倍）', val: Math.round(toastG).toLocaleString('zh-TW') + ' g', cls: '' });
+  }
+
+  if (burgerCnt > 0) {
+    items.push({ label: '漢堡', val: '訂單 ' + burgerCnt + ' 顆', cls: 'section' });
+    items.push({ label: '⌈' + burgerCnt + ' ÷ ' + BURGER_PER_BALL + '⌉ = ' + burgerBalls + ' 顆大麵糰', val: burgerBalls + ' × ' + BURGER_PER_BALL + ' = ' + actualBurgers + ' 顆', cls: '' });
+    items.push({ label: burgerBalls + ' 顆大麵糰 × 2,000g', val: Math.round(burgerG).toLocaleString('zh-TW') + ' g', cls: '' });
+
+    // Tray layout: distribute trayBurgers evenly, last few trays get one less
+    const basePerTray = Math.floor(trayBurgers / totalTrays);
+    const fullTrays = trayBurgers % totalTrays;
+    const lessTrays = totalTrays - fullTrays;
+    let trayInfo = '';
+    if (fullTrays === 0) {
+      trayInfo = totalTrays + ' 盤 × ' + basePerTray + ' 顆';
+    } else {
+      trayInfo = fullTrays + ' 盤 × ' + (basePerTray + 1) + ' 顆，' + lessTrays + ' 盤 × ' + basePerTray + ' 顆';
+    }
+    items.push({ label: '擺盤（共 ' + totalTrays + ' 盤，' + trayBurgers + ' 顆）', val: trayInfo, cls: '' });
+
+    if (backupBurgers === 0 && recycleBurgers === 0) {
+      items.push({ label: '麵糰剛好用完，無備份', val: '', cls: 'note-good' });
+    } else if (backupBurgers <= MAX_BACKUP && recycleBurgers === 0) {
+      items.push({ label: '含備份 +' + backupBurgers + ' 顆（≤ ' + MAX_BACKUP + ' 顆），麵糰全部用完', val: '', cls: 'note-good' });
+    } else {
+      const recycleDoughG = recycleBurgers * (BURGER_DOUGH / BURGER_PER_BALL);
+      const backupNote = backupBurgers > 0 ? '含備份 +' + backupBurgers + ' 顆，' : '';
+      items.push({ label: backupNote + '多出 ' + recycleBurgers + ' 顆未擺盤', val: '剩餘麵糰約 ' + Math.round(recycleDoughG).toLocaleString('zh-TW') + ' g 回收隔天', cls: 'note-warn' });
+    }
+  }
+
+  if (doughTotal > 0) {
+    items.push({ label: '麵糰重量', val: '', cls: 'section' });
+    doughItems.forEach(function(d) {
+      const n = parseFloat(document.getElementById(d.id).value) || 0;
+      if (n > 0) items.push({ label: d.w + 'g × ' + n + ' 顆', val: Math.round(n * d.w).toLocaleString('zh-TW') + ' g', cls: '' });
+    });
+    if (customG > 0) items.push({ label: customW + 'g × ' + customN + ' 顆（自訂）', val: Math.round(customG).toLocaleString('zh-TW') + ' g', cls: '' });
+  }
+
+  if (totalG > 0) items.push({ label: '需求總重量', val: Math.round(totalG).toLocaleString('zh-TW') + ' g', cls: 'total' });
+  if (multiplier > 0) items.push({ label: '攪拌倍數（÷ 7,287g，無條件進位至小數第 2 位）', val: mText + ' 倍', cls: 'total' });
+
+  document.getElementById('sw-breakdown').innerHTML = items.map(function(i) {
+    if (i.cls === 'section') {
+      return '<div class="breakdown-item" style="margin-top:6px;border-top:1px solid var(--border);padding-top:8px;"><span class="breakdown-item-label" style="font-weight:500;color:var(--text)">' + i.label + '</span><span class="breakdown-item-val" style="font-weight:500">' + i.val + '</span></div>';
+    }
+    if (i.cls === 'note-good') {
+      return '<div class="breakdown-item"><span class="breakdown-item-label" style="color:#2A7A40">' + i.label + '</span><span class="breakdown-item-val" style="color:#2A7A40;font-size:12px">' + i.val + '</span></div>';
+    }
+    if (i.cls === 'note-warn') {
+      return '<div class="breakdown-item"><span class="breakdown-item-label" style="color:var(--sweet)">' + i.label + '</span><span class="breakdown-item-val" style="color:var(--sweet);font-size:12px">' + i.val + '</span></div>';
+    }
+    return '<div class="breakdown-item ' + i.cls + '"><span class="breakdown-item-label">' + i.label + '</span><span class="breakdown-item-val">' + i.val + '</span></div>';
+  }).join('');
 }
 
 function copyMultiplierSweet() {
