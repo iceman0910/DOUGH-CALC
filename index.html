@@ -450,7 +450,7 @@
         <div class="row">
           <div class="row-label">
             條數
-            <div class="row-hint">≤12條 → 2.40倍　≥13條 → 2.55倍</div>
+            <div class="row-hint">≤10條 → 2.20倍　11～16條 → 2.40倍　≥17條 → 2.55倍</div>
           </div>
           <div class="input-wrap">
             <input type="number" id="sw-toast" min="0" placeholder="0" step="1" inputmode="numeric" oninput="calcSweet()">
@@ -784,8 +784,20 @@ function fallback(text, cb) {
   try { document.execCommand('copy'); cb(); } catch(e) {}
   document.body.removeChild(ta);
 }
-function copyMultiplier() { doCopy('w-copy-btn', document.getElementById('w-copy-btn').getAttribute('data-val')); }
-function copyMultiplierWheat() { doCopy('wh-copy-btn', document.getElementById('wh-copy-btn').getAttribute('data-val')); }
+function copyMultiplier() {
+  const leftover = parseFloat(document.getElementById('w-leftover').value) || 0;
+  if (leftover === 0) {
+    if (!confirm('剩餘麵糰為 0，確認今天沒有剩餘麵糰嗎？')) return;
+  }
+  doCopy('w-copy-btn', document.getElementById('w-copy-btn').getAttribute('data-val'));
+}
+function copyMultiplierWheat() {
+  const leftover = parseFloat(document.getElementById('wh-leftover').value) || 0;
+  if (leftover === 0) {
+    if (!confirm('剩餘麵糰為 0，確認今天沒有剩餘麵糰嗎？')) return;
+  }
+  doCopy('wh-copy-btn', document.getElementById('wh-copy-btn').getAttribute('data-val'));
+}
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => {
@@ -933,12 +945,67 @@ function getCustomTotal(prefix) {
   return { total, breakdown };
 }
 
+
+// ── Session storage (auto-clear on new day) ──
+const SESSION_KEY = 'daily-session';
+const SESSION_DATE_KEY = 'daily-session-date';
+
+const SESSION_INPUTS = [
+  'w-guan','w-sf-mon','w-sf-tue','w-sf-wed','w-sf-thu','w-sf-fri','w-sf-sat','w-sf-sun',
+  'w-bun','w-order','w-leftover',
+  'wh-guan','wh-sun','wh-wal','wh-order','wh-leftover',
+  'sw-toast','sw-burger','sw-d3600','sw-d2500','sw-d1400','sw-dcustom-w','sw-dcustom-n'
+];
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+function saveSession() {
+  const data = {};
+  SESSION_INPUTS.forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  lsSet(SESSION_KEY, data);
+  lsSet(SESSION_DATE_KEY, todayStr());
+}
+
+function loadSession() {
+  const savedDate = lsGet(SESSION_DATE_KEY, null);
+  if (savedDate !== todayStr()) {
+    // New day — clear session
+    localStorage.removeItem(SESSION_KEY);
+    lsSet(SESSION_DATE_KEY, todayStr());
+    return false;
+  }
+  const data = lsGet(SESSION_KEY, null);
+  if (!data) return false;
+  SESSION_INPUTS.forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) {
+      el.value = data[id];
+    }
+  });
+  return true;
+}
+
+// Auto-save on any input change
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.matches('input[type="number"], input[type="text"]')) {
+    saveSession();
+  }
+});
+
 // ── Init ──
 loadDefaults();
+loadSession();
 renderCustomRows('w');
 renderCustomRows('wh');
 calc();
 calcWheat();
+calcSweet();
 
 function calcSweet() {
   const BATCH = 7287;
@@ -952,8 +1019,13 @@ function calcSweet() {
 
   // ── Toast multiplier ──
   let toastMultiplier = 0;
-  if (toastCnt > 0) toastMultiplier = toastCnt <= 12 ? 2.4 : 2.55;
-  document.getElementById('sw-toast-ratio').textContent = toastCnt > 0 ? (toastCnt <= 12 ? '2.40 倍' : '2.55 倍') : '';
+  if (toastCnt > 0) {
+    if (toastCnt <= 10) toastMultiplier = 2.2;
+    else if (toastCnt <= 16) toastMultiplier = 2.4;
+    else toastMultiplier = 2.55;
+  }
+  const ratioText = toastCnt <= 0 ? '' : toastCnt <= 10 ? '2.20 倍' : toastCnt <= 16 ? '2.40 倍' : '2.55 倍';
+  document.getElementById('sw-toast-ratio').textContent = ratioText;
 
   // ── Burger logic ──
   let burgerBalls = 0, actualBurgers = 0, trayBurgers = 0, totalTrays = 0, backupBurgers = 0, recycleBurgers = 0;
@@ -1014,7 +1086,8 @@ function calcSweet() {
   const items = [];
 
   if (toastCnt > 0) {
-    items.push({ label: '小吐司 ' + toastCnt + ' 條（' + (toastCnt <= 12 ? '≤12條' : '≥13條') + ' → ' + toastMultiplier + ' 倍）', val: Math.round(toastG).toLocaleString('zh-TW') + ' g', cls: '' });
+    const tierLabel = toastCnt <= 10 ? '≤10條' : toastCnt <= 16 ? '11～16條' : '≥17條';
+    items.push({ label: '小吐司 ' + toastCnt + ' 條（' + tierLabel + ' → ' + toastMultiplier + ' 倍）', val: Math.round(toastG).toLocaleString('zh-TW') + ' g', cls: '' });
   }
 
   if (burgerCnt > 0) {
