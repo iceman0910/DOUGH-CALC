@@ -156,6 +156,21 @@
   .custom-delete-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--border-strong); border-radius: 7px; background: transparent; color: var(--text-muted); cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
   .custom-delete-btn:active { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
 
+
+  /* Batch size inline editor */
+  .batch-hint-wrap { display: flex; align-items: center; gap: 6px; }
+  .batch-edit-btn { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+  .batch-edit-btn:active { background: rgba(255,255,255,0.25); }
+  .batch-inline-form { display: none; align-items: center; gap: 6px; margin-top: 5px; }
+  .batch-inline-form.open { display: flex; }
+  .batch-inline-input { width: 88px; height: 30px; padding: 0 8px; text-align: right; font-family: var(--mono); font-size: 13px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; color: #fff; -moz-appearance: textfield; -webkit-appearance: none; }
+  .batch-inline-input::-webkit-inner-spin-button, .batch-inline-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .batch-inline-input:focus { outline: none; border-color: rgba(255,255,255,0.8); }
+  .batch-inline-save { height: 30px; padding: 0 10px; border-radius: 6px; border: none; background: rgba(255,255,255,0.9); color: var(--accent); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; }
+  .batch-inline-save.wheat { color: var(--wheat); }
+  .batch-inline-save.sweet { color: var(--sweet); }
+  .batch-inline-cancel { height: 30px; padding: 0 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: rgba(255,255,255,0.7); font-family: var(--sans); font-size: 12px; cursor: pointer; }
+
   .panel { display: none; }
   .panel.active { display: block; }
 </style>
@@ -305,7 +320,18 @@
 
     <div class="result">
       <div class="result-top">
-        <div><div class="result-label">隔天需攪拌重量</div><div class="result-hint">1倍 = 6,442g</div></div>
+        <div>
+          <div class="result-label">隔天需攪拌重量</div>
+          <div class="batch-hint-wrap">
+            <div class="result-hint" id="w-batch-label">1倍 = 6,442g</div>
+            <button class="batch-edit-btn" onclick="toggleBatchEdit('w')" title="修改1倍量"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+          <div class="batch-inline-form" id="w-batch-form">
+            <input type="number" class="batch-inline-input" id="w-batch-input" min="1" inputmode="numeric" placeholder="g">
+            <button class="batch-inline-save" onclick="saveBatch('w')">儲存</button>
+            <button class="batch-inline-cancel" onclick="toggleBatchEdit('w')">取消</button>
+          </div>
+        </div>
         <div class="result-weight"><span class="result-value" id="w-final">—</span><span class="result-unit-lg"> g</span></div>
       </div>
       <div class="result-bottom">
@@ -423,7 +449,18 @@
 
     <div class="result wheat-result">
       <div class="result-top">
-        <div><div class="result-label">隔天需攪拌重量</div><div class="result-hint">1倍 = 6,564g</div></div>
+        <div>
+          <div class="result-label">隔天需攪拌重量</div>
+          <div class="batch-hint-wrap">
+            <div class="result-hint" id="wh-batch-label">1倍 = 6,564g</div>
+            <button class="batch-edit-btn" onclick="toggleBatchEdit('wh')" title="修改1倍量"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+          <div class="batch-inline-form" id="wh-batch-form">
+            <input type="number" class="batch-inline-input" id="wh-batch-input" min="1" inputmode="numeric" placeholder="g">
+            <button class="batch-inline-save wheat" onclick="saveBatch('wh')">儲存</button>
+            <button class="batch-inline-cancel" onclick="toggleBatchEdit('wh')">取消</button>
+          </div>
+        </div>
         <div class="result-weight"><span class="result-value" id="wh-final">—</span><span class="result-unit-lg"> g</span></div>
       </div>
       <div class="result-bottom">
@@ -531,7 +568,15 @@
       <div class="result-top">
         <div>
           <div class="result-label">隔天需攪拌重量</div>
-          <div class="result-hint">1倍 = 7,287g</div>
+          <div class="batch-hint-wrap">
+            <div class="result-hint" id="sw-batch-label">1倍 = 7,287g</div>
+            <button class="batch-edit-btn" onclick="toggleBatchEdit('sw')" title="修改1倍量"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+          <div class="batch-inline-form" id="sw-batch-form">
+            <input type="number" class="batch-inline-input" id="sw-batch-input" min="1" inputmode="numeric" placeholder="g">
+            <button class="batch-inline-save sweet" onclick="saveBatch('sw')">儲存</button>
+            <button class="batch-inline-cancel" onclick="toggleBatchEdit('sw')">取消</button>
+          </div>
         </div>
         <div class="result-weight">
           <span class="result-value" id="sw-final">—</span>
@@ -720,7 +765,8 @@ function calc() {
 }
 
 function calcWheat() {
-  const TOAST_W = 1000, SUN_W = 300, WAL_W = 140, RESERVE = 800, BATCH = 6564;
+  const BATCH = getBatch('wh');
+  const TOAST_W = 1000, SUN_W = 300, WAL_W = 140, RESERVE = 800;
   const guan = val('wh-guan');
   const toastG = guan * 6 * TOAST_W;
   document.getElementById('wh-guan-g').textContent = toastG > 0 ? fmt(toastG) + ' g' : '';
@@ -946,6 +992,46 @@ function getCustomTotal(prefix) {
 }
 
 
+
+// ── Batch size (1倍量) ──
+const BATCH_DEFAULTS = { 'w': 6442, 'wh': 6564, 'sw': 7287 };
+
+function getBatch(prefix) {
+  return lsGet('batch-' + prefix, BATCH_DEFAULTS[prefix]);
+}
+
+function loadBatchLabels() {
+  ['w', 'wh', 'sw'].forEach(function(p) {
+    const v = getBatch(p);
+    const el = document.getElementById(p + '-batch-label');
+    if (el) el.textContent = '1倍 = ' + v.toLocaleString('zh-TW') + 'g';
+    const inp = document.getElementById(p + '-batch-input');
+    if (inp) inp.value = v;
+  });
+}
+
+function toggleBatchEdit(prefix) {
+  const form = document.getElementById(prefix + '-batch-form');
+  const inp = document.getElementById(prefix + '-batch-input');
+  const isOpen = form.classList.toggle('open');
+  if (isOpen) {
+    inp.value = getBatch(prefix);
+    inp.focus();
+  }
+}
+
+function saveBatch(prefix) {
+  const inp = document.getElementById(prefix + '-batch-input');
+  const v = parseInt(inp.value) || BATCH_DEFAULTS[prefix];
+  lsSet('batch-' + prefix, v);
+  const label = document.getElementById(prefix + '-batch-label');
+  if (label) label.textContent = '1倍 = ' + v.toLocaleString('zh-TW') + 'g';
+  document.getElementById(prefix + '-batch-form').classList.remove('open');
+  if (prefix === 'w') calc();
+  else if (prefix === 'wh') calcWheat();
+  else calcSweet();
+}
+
 // ── Session storage (auto-clear on new day) ──
 const SESSION_KEY = 'daily-session';
 const SESSION_DATE_KEY = 'daily-session-date';
@@ -1000,6 +1086,7 @@ document.addEventListener('input', function(e) {
 
 // ── Init ──
 loadDefaults();
+loadBatchLabels();
 loadSession();
 renderCustomRows('w');
 renderCustomRows('wh');
@@ -1008,7 +1095,7 @@ calcWheat();
 calcSweet();
 
 function calcSweet() {
-  const BATCH = 7287;
+  const BATCH = getBatch('sw');
   const BURGER_DOUGH = 2000;
   const BURGER_PER_BALL = 36;
   const TRAY_SIZE = 15;
